@@ -1,0 +1,19 @@
+; Kijiji Car Tracking - Supervisor config example (Linux)
+; Copy to /etc/supervisor/conf.d/
+; Run: supervisorctl reread && supervisorctl update
+;
+; Windows: Use a scheduled task or run manually:
+;   php artisan queue:work redis --queue=kijiji --tries=3 --timeout=120 --sleep=3
+
+[program:kijiji-worker]
+process_name=%(program_name)s_%(process_num)02d
+command=php /path/to/kijiji-car-deal/artisan queue:work redis --queue=kijiji --tries=3 --timeout=120 --sleep=3
+autostart=true
+autorestart=true
+stopasgroup=true
+killasgroup=true
+user=www-data
+numprocs=1
+redirect_stderr=true
+stdout_logfile=/path/to/kijiji-car-deal/storage/logs/kijiji-worker.log
+stopwaitsecs=360
