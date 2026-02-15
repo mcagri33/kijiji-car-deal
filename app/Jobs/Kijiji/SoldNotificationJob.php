@@ -6,6 +6,7 @@ namespace App\Jobs\Kijiji;
 
 use App\Mail\ListingSoldMail;
 use App\Models\KijijiListing;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -34,9 +35,13 @@ class SoldNotificationJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            $email = config('mail.kijiji_notification_email', config('mail.from.address'));
+            $recipients = User::pluck('email')->filter()->values()->all();
 
-            Mail::to($email)->send(new ListingSoldMail($this->listing));
+            if (empty($recipients)) {
+                $recipients = [config('mail.from.address')];
+            }
+
+            Mail::to($recipients)->send(new ListingSoldMail($this->listing));
         } catch (\Throwable $e) {
             Log::channel('kijiji')->error('SoldNotificationJob failed', [
                 'listing_id' => $this->listing->id,

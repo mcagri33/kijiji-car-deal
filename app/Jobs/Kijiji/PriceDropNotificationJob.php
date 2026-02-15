@@ -6,6 +6,7 @@ namespace App\Jobs\Kijiji;
 
 use App\Mail\PriceDroppedMail;
 use App\Models\KijijiListing;
+use App\Models\User;
 use Illuminate\Bus\Queueable;
 use Illuminate\Contracts\Queue\ShouldQueue;
 use Illuminate\Foundation\Bus\Dispatchable;
@@ -36,9 +37,13 @@ class PriceDropNotificationJob implements ShouldQueue
     public function handle(): void
     {
         try {
-            $email = config('mail.kijiji_notification_email', config('mail.from.address'));
+            $recipients = User::pluck('email')->filter()->values()->all();
 
-            Mail::to($email)->send(new PriceDroppedMail(
+            if (empty($recipients)) {
+                $recipients = [config('mail.from.address')];
+            }
+
+            Mail::to($recipients)->send(new PriceDroppedMail(
                 $this->listing,
                 $this->oldPrice,
                 $this->newPrice
